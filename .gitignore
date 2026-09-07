@@ -1,0 +1,5 @@
+build/
+/screenshot.png
+/web-touch.png
+/*.wav
+*.kra

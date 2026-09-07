@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="ja"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>FLOOR//01 · Touch</title>
+<style>
+:root{color-scheme:dark;font:14px system-ui,sans-serif;background:#151c25;color:#e4eaf0}
+*{box-sizing:border-box}
+body{margin:0;padding:8px;padding:max(8px,env(safe-area-inset-top)) max(8px,env(safe-area-inset-right)) 12px max(8px,env(safe-area-inset-left));color:#e4eaf0}
+button{font:inherit;min-height:44px;border:1px solid #354251;border-radius:8px;background:#26313e;color:inherit;padding:8px 10px;touch-action:manipulation}
+button.on{background:#d9ff72;color:#101720}
+button.pending{border-color:#d9ff72}
+button:disabled{opacity:.4}
+input{font:inherit;accent-color:#d9ff72}
+label{display:flex;align-items:center;gap:6px;font-size:12px}
+header{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px}
+h1{font-size:26px;margin:0}h1 span{color:#d9ff72}
+#connection{color:#93a3b5;font-size:12px}
+body.offline #message{display:block}
+#message{display:none;background:#3a1f1f;border:1px solid #8a3a3a;color:#ffd7d7;padding:8px;border-radius:8px;margin:6px 0}
+#meta{color:#8fa0b2;font-size:11px;font-weight:700;letter-spacing:1px}
+#transport{display:flex;gap:8px;align-items:center;flex-wrap:wrap;border-bottom:1px solid #26333f;padding-bottom:8px}
+#transport #play{min-width:150px}
+#bpm{width:84px;height:44px;background:#101720;border:1px solid #354251;border-radius:8px;color:#e4eaf0;padding:6px;font-size:18px;font-weight:700;text-align:center}
+.bpmctl{display:flex;align-items:center;gap:8px;flex:1;min-width:200px}
+.bpmctl span{font-size:12px;color:#c7d3de}
+#bpmRange{flex:1;min-width:80px;height:40px;accent-color:#d9ff72}
+#accent{min-width:120px}
+main{display:grid;grid-template-columns:minmax(0,1fr) 344px;gap:10px;margin-top:8px}
+.col-main{display:flex;flex-direction:column;gap:8px;min-width:0}
+.col-side{display:flex;flex-direction:column;gap:8px}
+#scenes{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+#gridScroll{overflow:auto;padding:2px;-webkit-overflow-scrolling:touch}
+#grid{min-width:720px;display:grid;grid-template-columns:112px repeat(16,minmax(34px,1fr));gap:4px}
+#grid button{min-height:44px;padding:0;border-radius:5px;font-size:11px}
+#grid button{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;touch-action:none}
+#grid .number{user-select:none;text-align:center;color:#8c9aab;font-size:11px;padding:4px}
+#grid .step{background:#1d2733;border-color:transparent}
+#grid .step.active{background:var(--track);color:#101720;opacity:.75}
+#grid .step.accent{opacity:1;box-shadow:inset 0 4px #fff8}
+#grid .current{outline:2px solid #d9ff72;outline-offset:-2px}
+#grid .muted{opacity:.4}
+#pad{height:120px;min-height:96px;border:1px solid #354251;border-radius:10px;position:relative;touch-action:none;background:repeating-linear-gradient(0deg,transparent 0 23px,#202c37 24px 25px),repeating-linear-gradient(90deg,#151d25 0 23px,#202c37 24px 25px);overflow:hidden}
+#pad>span{position:absolute;left:10px;top:6px;color:#8c9aab;font-size:11px}
+#dot{position:absolute;width:22px;height:22px;border-radius:50%;background:#d9ff72;transform:translate(-50%,-50%);pointer-events:none}
+.panel{border:1px solid #26333f;border-radius:10px;padding:8px}
+.panel h2{margin:0 0 6px;color:#8fa0b2;font-size:11px;font-weight:700;letter-spacing:1px}
+.track{display:grid;grid-template-columns:56px minmax(0,1fr) 48px;gap:6px;align-items:center;margin-bottom:4px}
+.track .tname{font-size:12px;font-weight:700}
+.track input[type=range]{width:100%;height:34px;margin:0}
+.track button{min-height:34px;padding:0;font-size:10px;border-radius:6px}
+.track button.on{background:#d9ff72;color:#101720}
+.sliderrow{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+.sliderrow .sname{width:64px;font-size:12px;color:#c7d3de}
+.sliderrow input[type=range]{flex:1;height:34px;min-width:0}
+.sliderrow .sval{width:34px;text-align:right;color:#d9ff72;font-size:12px;font-variant-numeric:tabular-nums}
+#perf{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+@media(max-width:980px){main{grid-template-columns:minmax(0,1fr)}}
+</style>
+<body class="offline">
+<header><h1>FLOOR<span>//01</span></h1><div id="meta">BASS OVERDRIVE · RHYTHM · BASS · PRESSURE</div><span id="connection" role="status">接続中…</span></header>
+<div id="message" role="alert"></div>
+<section id="transport">
+  <button id="play">▶ PLAY</button>
+  <button id="stop">■ STOP</button>
+  <div class="bpmctl"><span>BPM</span><input id="bpmRange" type="range" min="70" max="180" value="128"><input id="bpm" type="number" min="70" max="180" value="128"></div>
+  <button id="accent" aria-pressed="false">ACCENT OFF</button>
+</section>
+<main>
+  <div class="col-main">
+    <section id="scenes" aria-label="シーン"></section>
+    <section id="gridScroll"><div id="grid"></div></section>
+    <div class="panel"><h2>TOUCH FX · 横=FILTER 縦=DELAY</h2><div id="pad" role="group" aria-label="フィルターとディレイのXYパッド"><i id="dot"></i><span>ECHO ↑ / FILTER →</span></div></div>
+  </div>
+  <div class="col-side">
+    <div class="panel"><h2>MIXER · LEVEL / SOURCE</h2><section id="mix"></section></div>
+    <div class="panel"><h2>MOTION</h2><section id="motion"></section></div>
+    <div class="panel"><h2>PERFORMANCE</h2><section id="perf"><button id="fill">HOLD: FILL</button><button id="kill">LOW CUT</button><button id="reset">RESET FX</button><button id="init">INIT</button></section></div>
+  </div>
+</main>
+<script>
+'use strict';
+const $=id=>document.getElementById(id), token=location.hash.slice(1);
+const names=['KICK','CLAP','CLOSED HAT','OPEN HAT','PERC','SEQ BASS','STAB','RIDE'],short=['KICK','CLAP','CHAT','OHAT','PERC','BASS','STAB','RIDE'],colors=['#ff765c','#ffab66','#ebcc7b','#badb81','#7bd6b5','#b9a0ff','#79baff','#ed9dce'];
+let state=null,online=false,accent=false,busy=false,queue=[],editing=new Set(),fillTimer=null,padPointer=null,fillPointer=null;
+const client=Array.from(crypto.getRandomValues(new Uint32Array(4)),x=>x.toString(16)).join('');
+async function api(path,body){const ctrl=new AbortController(),timer=setTimeout(()=>ctrl.abort(),2000);try{const r=await fetch(path,{method:body?'POST':'GET',cache:'no-store',headers:{Authorization:'Bearer '+token,...(body?{'Content-Type':'application/json'}:{})},body:body?JSON.stringify(body):undefined,signal:ctrl.signal});if(!r.ok)throw Error(r.status===403?'PCのCable Syncに表示されたURLを開いてください':'通信エラー '+r.status);return await r.json();}finally{clearTimeout(timer)}}
+function disconnected(error){online=false;queue=[];clearInterval(fillTimer);fillTimer=null;fillPointer=null;padPointer=null;editing.clear();document.body.classList.add('offline');$('connection').textContent='未接続';$('message').textContent=error.message||'接続が切れました';}
+function send(body,key){if(!online)return;body.client=client;if(key){const old=queue.findIndex(q=>q.key===key);if(old>=0)queue.splice(old,1);}if(queue.length>=64){disconnected(Error('通信が遅れています。再接続を待ってください'));return;}queue.push({body,key});drain();}
+async function drain(){if(busy)return;busy=true;try{while(queue.length)await api('/command',queue.shift().body);}catch(e){disconnected(e);}finally{busy=false;}}
+function button(text,action,parent){const b=document.createElement('button');b.textContent=text;b.onclick=action;parent.append(b);return b;}
+const sceneLabels=['MAIN FLOOR','DUBSTEP','UK GARAGE','D&B','TRAP','ELECTRO','BIG ROOM','BREAKS'];
+const sceneButtons=sceneLabels.map((n,i)=>button(n,()=>send({op:'scene',value:i}),$('scenes')));
+$('grid').append(document.createElement('span'));for(let i=0;i<16;i++){const n=document.createElement('span');n.className='number';n.textContent=i+1;$('grid').append(n);}
+const muteButtons=[],cells=[],smpBtns=[],levelInputs=[];
+function rangeEl(id){const i=document.createElement('input');i.type='range';i.id=id;i.min=0;i.max=100;i.onpointerdown=()=>editing.add(id);const done=()=>editing.delete(id);i.onpointerup=done;i.onpointercancel=done;i.onblur=done;return i;}
+for(let t=0;t<8;t++){
+  muteButtons[t]=button(names[t],()=>send({op:'mute',track:t,value:!state.mute[t]}),$('grid'));
+  muteButtons[t].style.color=colors[t];cells[t]=[];
+  for(let i=0;i<16;i++){const b=button('',()=>tap(t,i),$('grid'));b.className='step';b.style.setProperty('--track',colors[t]);b.setAttribute('aria-label',names[t]+' ステップ '+(i+1));b.dataset.t=t;b.dataset.i=i;b.addEventListener('pointerdown',downStep);cells[t][i]=b;}
+  const row=document.createElement('div');row.className='track';
+  const lab=document.createElement('span');lab.className='tname';lab.textContent=short[t];lab.style.color=colors[t];
+  const input=rangeEl('level'+t);levelInputs[t]=input;
+  input.oninput=()=>send({op:'level',track:t,value:Number(input.value)},'level'+t);
+  const smp=button('SMP',null,row);smpBtns[t]=smp;
+  smp.dataset.t=t;smp.onclick=()=>send({op:'sample',track:t,value:!state.sample[t]},'smp'+t);
+  if(t===6)smp.disabled=true;
+  row.append(lab,input,smp);$('mix').append(row);
+}
+const macros={};for(const [id,title] of [['swing','SWING'],['drive','DRIVE'],['volume','MASTER']]){const row=document.createElement('div');row.className='sliderrow';const n=document.createElement('span');n.className='sname';n.textContent=title;const val=document.createElement('span');val.className='sval';const input=rangeEl(id);input.oninput=()=>{val.textContent=input.value;send({op:id,value:Number(input.value)},id);};row.append(n,input,val);$('motion').append(row);macros[id]={input,val};}
+$('play').onclick=()=>send({op:'playing',value:!state.playing});$('stop').onclick=()=>send({op:'playing',value:false});$('kill').onclick=()=>send({op:'kill',value:!state.kill});$('reset').onclick=()=>send({op:'reset'});$('init').onclick=()=>{if(confirm('全パターン・ミキサー・FXを初期状態に戻しますか？'))send({op:'resetAll'});};
+const br=$('bpmRange');
+br.onpointerdown=()=>editing.add('bpm');const bdone=()=>editing.delete('bpm');br.onpointerup=bdone;br.onpointercancel=bdone;br.onblur=bdone;
+function setBpm(v){if(!Number.isInteger(v))return;v=Math.max(70,Math.min(180,v));$('bpm').value=v;br.value=v;send({op:'bpm',value:v},'bpm');}
+br.oninput=()=>setBpm(Number(br.value));
+$('bpm').onchange=()=>setBpm(Number($('bpm').value));
+$('accent').onclick=()=>{accent=!accent;$('accent').textContent='ACCENT '+(accent?'ON':'OFF');$('accent').classList.toggle('on',accent);$('accent').setAttribute('aria-pressed',String(accent));};
+let drag=null,swallowClickUntil=0;
+function downStep(e){if(drag||!state)return;const b=e.target.closest('.step');if(!b)return;drag={pid:e.pointerId,t:+b.dataset.t,i:+b.dataset.i,last:(+b.dataset.t)*16+(+b.dataset.i),moved:false};}
+function paintValue(t,i){const cur=state.pattern[t][i];if(accent)return cur===2?1:2;return cur?0:1;}
+function tap(t,i){if(!state)return;const nv=paintValue(t,i);state.pattern[t][i]=nv;const b=cells[t][i];if(b){b.classList.toggle('active',nv>0);b.classList.toggle('accent',nv===2);b.textContent=nv===2?'•':'';b.setAttribute('aria-pressed',String(nv>0));}send({op:'step',track:t,step:i,scene:state.scene,value:nv},t+':'+i);}
+function paint(t,i,v){if(!state)return;state.pattern[t][i]=v;const b=cells[t][i];if(b){b.classList.toggle('active',v>0);b.classList.toggle('accent',v===2);b.textContent=v===2?'•':'';b.setAttribute('aria-pressed',String(v>0));}send({op:'step',track:t,step:i,scene:state.scene,value:v},t+':'+i);}
+document.addEventListener('pointermove',e=>{if(!drag||e.pointerId!==drag.pid)return;const el=document.elementFromPoint(e.clientX,e.clientY),b=el&&el.closest?el.closest('.step'):null;if(!b)return;const t=+b.dataset.t,i=+b.dataset.i,key=t*16+i;if(key===drag.last)return;if(!drag.moved){drag.moved=true;paint(drag.t,drag.i,paintValue(drag.t,drag.i));}drag.last=key;paint(t,i,paintValue(t,i));});
+function endStep(e){if(!drag||e.pointerId!==drag.pid)return;if(drag.moved)swallowClickUntil=Date.now()+400;drag=null;}
+document.addEventListener('pointerup',endStep);document.addEventListener('pointercancel',endStep);
+document.addEventListener('click',e=>{if(Date.now()<swallowClickUntil){swallowClickUntil=0;e.preventDefault();e.stopPropagation();}},true);
+$('fill').onpointerdown=e=>{if(fillPointer!==null)return;e.preventDefault();fillPointer=e.pointerId;$('fill').setPointerCapture(e.pointerId);send({op:'fill',value:true},'fill');fillTimer=setInterval(()=>send({op:'fill',value:true},'fill'),250);};
+function endFill(e){if(e&&e.pointerId!==fillPointer)return;clearInterval(fillTimer);fillTimer=null;if(fillPointer!==null)send({op:'fill',value:false},'fill');fillPointer=null;}
+$('fill').onpointerup=endFill;$('fill').onpointercancel=endFill;$('fill').onlostpointercapture=endFill;
+function xy(e){const r=$('pad').getBoundingClientRect(),x=Math.max(0,Math.min(1,(e.clientX-r.left)/r.width)),y=Math.max(0,Math.min(.85,1-(e.clientY-r.top)/r.height));$('dot').style.left=x*100+'%';$('dot').style.top=(1-y)*100+'%';send({op:'xy',x,y},'xy');}
+$('pad').onpointerdown=e=>{if(padPointer!==null)return;e.preventDefault();padPointer=e.pointerId;$('pad').setPointerCapture(e.pointerId);xy(e);};$('pad').onpointermove=e=>{if(e.pointerId===padPointer)xy(e);};const endPad=e=>{if(e.pointerId===padPointer)padPointer=null;};$('pad').onpointerup=endPad;$('pad').onpointercancel=endPad;$('pad').onlostpointercapture=endPad;
+window.addEventListener('hashchange',()=>location.reload());
+document.addEventListener('visibilitychange',()=>{if(document.hidden){endFill();padPointer=null;}});window.addEventListener('pagehide',()=>endFill());
+function render(s){state=s;$('play').textContent=s.playing?'■ STOP':'▶ PLAY';$('play').classList.toggle('on',s.playing);$('play').disabled=!s.audio;$('kill').classList.toggle('on',s.kill);$('fill').classList.toggle('on',s.fill);if(!editing.has('bpm')){$('bpmRange').value=s.bpm;if(document.activeElement!==$('bpm'))$('bpm').value=s.bpm;}sceneButtons.forEach((b,i)=>{b.classList.toggle('on',s.scene===i);b.classList.toggle('pending',s.pending===i);});for(let t=0;t<8;t++){muteButtons[t].classList.toggle('muted',s.mute[t]);muteButtons[t].setAttribute('aria-pressed',String(s.mute[t]));for(let i=0;i<16;i++){const b=cells[t][i],v=s.pattern[t][i];b.classList.toggle('active',v>0);b.classList.toggle('accent',v===2);b.classList.toggle('current',s.playing&&s.step===i);b.textContent=v===2?'•':'';b.setAttribute('aria-pressed',String(v>0));}const smp=smpBtns[t];smp.textContent=s.sample[t]?'SMP':'SYN';smp.classList.toggle('on',s.sample[t]);smp.setAttribute('aria-pressed',String(s.sample[t]));if(!editing.has('level'+t))levelInputs[t].value=Math.round(s.levels[t]*100);}for(const id in macros){const m=macros[id];if(!editing.has(id)){m.input.value=Math.round(s[id]*(id==='swing'?100/.45:100));m.val.textContent=m.input.value;}}if(padPointer===null){$('dot').style.left=s.cutoff*100+'%';$('dot').style.top=(1-s.echo)*100+'%';}}
+async function poll(){if(!document.hidden&&!busy&&!queue.length){try{const s=await api('/state');if(!busy&&!queue.length)render(s);online=true;document.body.classList.remove('offline');$('connection').textContent='● LAN CONNECTED';$('message').textContent=s.audio?'':'PCの音声出力を確認してください';}catch(e){disconnected(e);}}setTimeout(poll,120);}
+if(token)poll();else disconnected(Error('PCの「Cable Sync」に表示される接続URLをSafariで開いてください。'));
+</script></body></html>

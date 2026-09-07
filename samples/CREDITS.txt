@@ -1,0 +1,20 @@
+FLOOR//01 bundled drum samples
+===============================
+
+All samples in this folder are released under the Creative Commons Zero
+(CC0 1.0) license and are free to use, modify and redistribute in
+personal and commercial projects without attribution.
+
+Source kit: Boochi44 / free-drum-samples
+  https://github.com/Boochi44/free-drum-samples
+
+  - kick.wav   02-bounce/kicks/bounce-kick-01.wav
+  - snare.wav  01-hard-trap/snares/hard-snare-01.wav
+  - hat.wav    01-hard-trap/hi-hats/hi-hat-closed-01.wav
+  - open.wav   01-hard-trap/open-hats/open-hat-01.wav
+  - perc.wav   01-hard-trap/percs/perc-rimshot.wav
+  - bass808.wav 01-hard-trap/808s/808-bass-sub.wav
+  - cymbal.wav 01-hard-trap/fx/fx-cymbal.wav
+
+Some samples are derived from the TR-808 recordings by Edward Loveall
+(CC0), published in the tidalcycles/sounds-tr808-fischer repository.
